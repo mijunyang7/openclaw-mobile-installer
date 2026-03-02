@@ -13,116 +13,116 @@
 
 ---
 
-## Task: Install_OpenClaw
+##任务：安装_OpenClaw
 
 ### 操作 1：检查 Termux
 
 ```
-Action: App
-Type: Check App
-Package: com.termux
-Store Result: %termux_installed
+操作：应用
+类型：检查应用
+软件包：com.termux
+存储结果：%termux_installed
 ```
 
 ### 操作 2：如果未安装
 
 ```
-Action: If
-Condition: %termux_installed NOT SET
+操作：如果
+条件：%termux_installed 未设置
 
-  Action: Alert
-  Type: Popup
-  Text: Termux 未安装，即将跳转到下载页面...
+操作：警告
+类型：弹出框
+文本：Termux 未安装，即将跳转到下载页面...
   
-  Action: Net
-  Type: View URL
-  URL: https://f-droid.org/packages/com.termux/
+操作：网络
+类型：查看网址
+网址：https://f-droid.org/packages/com.termux/
   
-  Action: Wait
-  Seconds: 5
+操作：等待
+秒数：5
   
-  Action: Goto
-  Type: Action Label
-  Label: Check_Permission
+操作：跳转
+类型：操作标签
+标签：检查权限
 ```
 
 ### 操作 3：授予权限
 
 ```
-Action: Label
-Name: Check_Permission
+操作：标签
+名称：检查权限
 
-Action: App
-Type: Get Permission
-Permission: Storage
-Package: com.termux
+操作：应用
+类型：获取权限
+权限：存储
+软件包：com.termux
 ```
 
 ### 操作 4：执行安装脚本
 
 ```
-Action: Code
-Type: Run Shell
-Command: |
-  curl -L https://raw.githubusercontent.com/你的用户名/openclaw-mobile-installer/main/install.sh | bash
-Timeout: 1800
-Background: Off
+操作：代码
+类型：运行Shell
+命令：|
+  curl -L https://raw.githubusercontent.com/mijunyang7/openclaw-mobile-installer/main/install.sh | bash
+超时：1800
+后台：关
 ```
 
 ### 操作 5：显示进度
 
 ```
-Action: Alert
-Type: Popup
-Text: 安装进行中，预计需要 20 分钟...
+操作：警告
+类型：弹出框
+文本：安装进行中，预计需要 20 分钟...
 
-Action: Wait
-Minutes: 20
+操作：等待
+分钟：20
 ```
 
 ### 操作 6：验证安装
 
 ```
-Action: Code
-Type: Run Shell
-Command: |
-  openclaw status
-Store Result: %install_result
+操作：代码
+类型：运行Shell
+命令：|
+openclaw状态
+存储结果： %install_result
 ```
 
 ### 操作 7：完成提示
 
 ```
 Action: If
-Condition: %install_result MATCHES .*正常.*
+条件：%install_result 匹配 .*正常.*
 
-  Action: Alert
-  Type: Popup
+操作：警告
+类型：弹出框
   Text: ✅ OpenClaw 安装成功！
   
-  Action: App
-  Type: Launch App
-  App: com.termux
+操作：应用
+类型：启动应用
+应用：com.termux
   
-Else
+否则
 
-  Action: Alert
-  Type: Popup
-  Text: ❌ 安装失败，请联系技术支持
+操作：警告
+类型：弹出框
+文本：❌ 安装失败，请联系技术支持
   
-End If
+结束如果
 ```
 
 ---
 
-## 📱 APP 界面设计
+##APP界面设计
 
 ### 主界面
 
 ```
 ┌─────────────────────────────┐
 │                             │
-│    🦞 OpenClaw Installer    │
+│ OpenClaw 安装程序 │
 │                             │
 │    ┌─────────────────┐     │
 │    │                 │     │
