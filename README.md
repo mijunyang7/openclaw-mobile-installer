@@ -34,7 +34,7 @@
 复制以下命令并粘贴到 Termux 中：
 
 ```bash
-curl -L https://raw.githubusercontent.com/mijunyang7/openclaw-mobile-installer/main/install.sh | bash
+curl -L https://raw.githubusercontent.com/mijunyang7/openclaw-mobile-installer/refs/heads/main/install.sh
 
 
 ```
