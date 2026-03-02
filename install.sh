@@ -75,29 +75,34 @@ fi
 #######################################################################
 print_info "步骤 4/8: 在 Ubuntu 中安装 OpenClaw..."
 
-# 在 Ubuntu 环境中安装 OpenClaw
-proot-distro login ubuntu -- bash -c "
-    # 更新 apt
-    apt update -y
-    
-    # 安装 Node.js 和 npm
-    apt install -y nodejs npm
-    
-    # 安装 OpenClaw
-    npm install -g openclaw
-    
-    # 验证安装
-    if command -v openclaw &> /dev/null; then
-        echo '[OK] OpenClaw 安装成功'
-        openclaw --version
-    else
-        echo '[ERROR] OpenClaw 安装失败！'
-        exit 1
-    fi
-"
+# 创建临时安装脚本
+UBUNTU_INSTALL_SCRIPT="$WORKSPACE_DIR/ubuntu_install_temp.sh"
+mkdir -p "$WORKSPACE_DIR"
 
-if [ $? -eq 0 ]; then
+cat > "$UBUNTU_INSTALL_SCRIPT" << 'UBUNTU_EOF'
+#!/bin/bash
+set -e
+
+echo "[INFO] 更新 apt..."
+apt update -y
+
+echo "[INFO] 安装 Node.js 和 npm..."
+apt install -y nodejs npm
+
+echo "[INFO] 安装 OpenClaw..."
+npm install -g openclaw
+
+echo "[OK] OpenClaw 安装成功"
+openclaw --version
+UBUNTU_EOF
+
+chmod +x "$UBUNTU_INSTALL_SCRIPT"
+
+# 在 Ubuntu 环境中执行安装脚本
+if proot-distro login ubuntu -- bash "$UBUNTU_INSTALL_SCRIPT"; then
     print_success "OpenClaw 安装成功"
+    # 清理临时脚本
+    rm -f "$UBUNTU_INSTALL_SCRIPT"
 else
     print_error "OpenClaw 安装失败！"
     exit 1
