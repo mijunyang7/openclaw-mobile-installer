@@ -23,18 +23,17 @@ print_info "=========================================="
 
 print_info "Step 1/8: Checking storage permission..."
 if [ ! -d "/sdcard" ]; then
-    print_warning "Storage permission not granted, requesting..."
     termux-setup-storage
     sleep 2
 fi
 print_success "Storage permission configured"
 
-print_info "Step 2/8: Installing base dependencies (3-5 min)..."
+print_info "Step 2/8: Installing base dependencies..."
 pkg update -y
 pkg install -y nodejs-lts python git curl wget proot-distro
 print_success "Base dependencies installed"
 
-print_info "Step 3/8: Installing Ubuntu proot (5-8 min)..."
+print_info "Step 3/8: Installing Ubuntu proot..."
 if proot-distro list 2>/dev/null | grep -q "ubuntu"; then
     print_warning "Ubuntu already installed, skipping"
 else
@@ -43,59 +42,49 @@ else
 fi
 
 print_info "Step 4/8: Installing OpenClaw in Ubuntu..."
-UBUNTU_INSTALL_SCRIPT="$WORKSPACE_DIR/ubuntu_install_temp.sh"
+WORKSPACE_DIR="$HOME/openclaw_workspace"
 mkdir -p "$WORKSPACE_DIR"
+UBUNTU_SCRIPT="$WORKSPACE_DIR/ubuntu_install_temp.sh"
 
-cat > "$UBUNTU_INSTALL_SCRIPT" << 'UBUNTU_EOF'
+cat > "$UBUNTU_SCRIPT" << 'UBUNTU_EOF'
 #!/bin/bash
 set -e
-echo "[INFO] Updating apt..."
 apt update -y
-echo "[INFO] Installing Node.js and npm..."
 apt install -y nodejs npm
-echo "[INFO] Installing OpenClaw..."
 npm install -g openclaw
-echo "[OK] OpenClaw installed successfully"
+echo "[OK] OpenClaw installed"
 openclaw --version
 UBUNTU_EOF
 
-chmod +x "$UBUNTU_INSTALL_SCRIPT"
-
-if proot-distro login ubuntu -- bash "$UBUNTU_INSTALL_SCRIPT"; then
+chmod +x "$UBUNTU_SCRIPT"
+if proot-distro login ubuntu -- bash "$UBUNTU_SCRIPT"; then
     print_success "OpenClaw installed successfully"
-    rm -f "$UBUNTU_INSTALL_SCRIPT"
+    rm -f "$UBUNTU_SCRIPT"
 else
     print_error "OpenClaw installation failed!"
     exit 1
 fi
 
 print_info "Step 5/8: Configuring workspace..."
-WORKSPACE_DIR="$HOME/openclaw_workspace"
-
 if [ -d "$WORKSPACE_DIR" ]; then
     print_warning "Workspace already exists: $WORKSPACE_DIR"
 else
     mkdir -p "$WORKSPACE_DIR"
     print_success "Workspace created: $WORKSPACE_DIR"
 fi
-
 mkdir -p "$WORKSPACE_DIR"/{skills,drafts,monitor_reports,queue}
 
 print_info "Step 6/8: Configuring anti-kill protection..."
 HIJACK_FILE="$WORKSPACE_DIR/hijack.js"
-
 cat > "$HIJACK_FILE" << 'HIJACK_EOF'
 const net = require('net');
 const originalLookup = net.Socket.prototype._connect;
 net.Socket.prototype._connect = function() {
-    if (arguments[0] && arguments[0].port === 53) {
-        return;
-    }
+    if (arguments[0] && arguments[0].port === 53) { return; }
     return originalLookup.apply(this, arguments);
 };
 console.log('[OK] Anti-kill protection loaded');
 HIJACK_EOF
-
 print_success "Anti-kill protection configured"
 
 STARTUP_FILE="$HOME/.termux/boot.sh"
@@ -111,24 +100,15 @@ STARTUP_EOF
 fi
 
 print_info "Step 7/8: Installing skills..."
-SKILLS=(
-    "stock-monitor"
-    "toutiao-publisher"
-    "proactive-agent"
-    "weather"
-    "hot-trend-publisher"
-    "humanizer-zh"
-    "self-improvement"
-)
-
+SKILLS=(stock-monitor toutiao-publisher proactive-agent weather hot-trend-publisher humanizer-zh self-improvement)
 INSTALLED_COUNT=0
 for skill in "${SKILLS[@]}"; do
-    print_info "  Installing skill: $skill"
+    print_info "  Installing: $skill"
     if npx clawhub install "$skill" 2>/dev/null; then
-        print_success "  ✓ $skill installed"
-        ((INSTALLED_COUNT++))
+        print_success "  $skill installed"
+        INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
     else
-        print_warning "  ✗ $skill failed (rate limit)"
+        print_warning "  $skill failed (rate limit)"
     fi
     sleep 2
 done
@@ -136,7 +116,6 @@ print_success "Skills installed: $INSTALLED_COUNT/${#SKILLS[@]}"
 
 print_info "Step 8/8: Configuring cron jobs..."
 CRON_FILE="$HOME/cronjobs"
-
 cat > "$CRON_FILE" << CRON_EOF
 # OpenClaw cron jobs
 0 9 * * 1-5 cd $WORKSPACE_DIR && node skills/stock-monitor/scripts/monitor.js
@@ -144,16 +123,13 @@ cat > "$CRON_FILE" << CRON_EOF
 0 15 * * 1-5 cd $WORKSPACE_DIR && node skills/stock-monitor/scripts/monitor.js
 0 7 * * 1-5 cd $WORKSPACE_DIR && node skills/hot-trend-publisher/scripts/run.js
 CRON_EOF
-
 crontab "$CRON_FILE"
 print_success "Cron jobs configured"
 
 print_info "=========================================="
 print_success "  OpenClaw Installation Complete!"
 print_info "=========================================="
-print_info ""
 print_info "Workspace: $WORKSPACE_DIR"
-print_info "Ubuntu: Installed"
 print_info "Skills: $INSTALLED_COUNT/${#SKILLS[@]}"
 print_info ""
 print_info "Next steps:"
