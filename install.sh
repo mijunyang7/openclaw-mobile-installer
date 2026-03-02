@@ -2,9 +2,9 @@
 
 #######################################################################
 # OpenClaw 一键安装脚本 (手机版)
-# 版本：1.0.0
+# 版本：1.1.0 (修正版)
 # 适用：Android Termux 环境
-# 功能：自动安装 OpenClaw + 防杀停配置 + 常用技能
+# 功能：自动安装 OpenClaw + Ubuntu 环境 + 防杀停配置 + 常用技能
 #######################################################################
 
 set -e  # 遇到错误立即退出
@@ -29,7 +29,7 @@ if [ ! -d "/data/data/com.termux" ]; then
 fi
 
 print_info "=========================================="
-print_info "  OpenClaw 一键安装脚本 v1.0.0"
+print_info "  OpenClaw 一键安装脚本 v1.1.0"
 print_info "=========================================="
 
 #######################################################################
@@ -57,31 +57,56 @@ pkg install -y nodejs-lts python git curl wget proot-distro
 print_success "基础依赖安装完成"
 
 #######################################################################
-# 步骤 3: 安装 OpenClaw
+# 步骤 3: 安装 Ubuntu proot 环境 ⭐ 提前到这里
 #######################################################################
-print_info "步骤 3/8: 安装 OpenClaw..."
+print_info "步骤 3/8: 安装 Ubuntu proot 环境 (约 5-8 分钟)..."
 
-# 检查 npm 是否可用
-if ! command -v npm &> /dev/null; then
-    print_error "npm 未安装，请先安装 nodejs"
-    exit 1
+# 检查是否已安装
+if proot-distro list 2>/dev/null | grep -q "ubuntu"; then
+    print_warning "Ubuntu 已安装，跳过"
+else
+    # 安装 Ubuntu
+    proot-distro install ubuntu
+    print_success "Ubuntu proot 环境安装成功"
 fi
 
-# 安装 OpenClaw
-npm install -g openclaw
+#######################################################################
+# 步骤 4: 在 Ubuntu 环境中安装 OpenClaw
+#######################################################################
+print_info "步骤 4/8: 在 Ubuntu 中安装 OpenClaw..."
 
-# 验证安装
-if command -v openclaw &> /dev/null; then
-    print_success "OpenClaw 安装成功 ($(openclaw --version))"
+# 在 Ubuntu 环境中安装 OpenClaw
+proot-distro login ubuntu -- bash -c "
+    # 更新 apt
+    apt update -y
+    
+    # 安装 Node.js 和 npm
+    apt install -y nodejs npm
+    
+    # 安装 OpenClaw
+    npm install -g openclaw
+    
+    # 验证安装
+    if command -v openclaw &> /dev/null; then
+        echo '[OK] OpenClaw 安装成功'
+        openclaw --version
+    else
+        echo '[ERROR] OpenClaw 安装失败！'
+        exit 1
+    fi
+"
+
+if [ $? -eq 0 ]; then
+    print_success "OpenClaw 安装成功"
 else
     print_error "OpenClaw 安装失败！"
     exit 1
 fi
 
 #######################################################################
-# 步骤 4: 配置工作目录
+# 步骤 5: 配置工作目录
 #######################################################################
-print_info "步骤 4/8: 配置工作目录..."
+print_info "步骤 5/8: 配置工作目录..."
 
 WORKSPACE_DIR="$HOME/openclaw_workspace"
 
@@ -96,9 +121,9 @@ fi
 mkdir -p "$WORKSPACE_DIR"/{skills,drafts,monitor_reports,queue}
 
 #######################################################################
-# 步骤 5: 安装防杀停配置 (hijack.js)
+# 步骤 6: 安装防杀停配置 (hijack.js)
 #######################################################################
-print_info "步骤 5/8: 配置防杀停..."
+print_info "步骤 6/8: 配置防杀停..."
 
 HIJACK_FILE="$WORKSPACE_DIR/hijack.js"
 
@@ -135,21 +160,6 @@ node $HIJACK_FILE &
 EOF
     chmod +x "$STARTUP_FILE"
     print_success "开机自启配置已创建"
-fi
-
-#######################################################################
-# 步骤 6: 安装 Ubuntu proot 环境 (可选但推荐)
-#######################################################################
-print_info "步骤 6/8: 安装 Ubuntu proot 环境 (约 5 分钟)..."
-
-# 安装 Ubuntu
-proot-distro install ubuntu
-
-# 验证安装
-if proot-distro list | grep -q "ubuntu"; then
-    print_success "Ubuntu proot 环境安装成功"
-else
-    print_warning "Ubuntu proot 安装失败，但不影响基础功能"
 fi
 
 #######################################################################
@@ -213,6 +223,7 @@ print_success "  OpenClaw 安装完成！"
 print_info "=========================================="
 print_info ""
 print_info "工作目录：$WORKSPACE_DIR"
+print_info "Ubuntu 环境：已安装"
 print_info "技能数量：$INSTALLED_COUNT/${#SKILLS[@]}"
 print_info ""
 print_info "下一步操作："
@@ -221,9 +232,10 @@ print_info "  2. 编辑 skills/stock-monitor/scripts/config.js 配置持仓"
 print_info "  3. 运行 openclaw status 检查状态"
 print_info ""
 print_info "常用命令："
-print_info "  openclaw status          # 查看状态"
-print_info "  openclaw skills list     # 查看技能"
-print_info "  openclaw gateway start   # 启动网关"
+print_info "  proot-distro login ubuntu  # 进入 Ubuntu 环境"
+print_info "  openclaw status            # 查看状态"
+print_info "  openclaw skills list       # 查看技能"
+print_info "  openclaw gateway start     # 启动网关"
 print_info ""
 print_warning "提示：建议将 Termux 加入电池优化白名单，防止被杀进程"
 print_info "=========================================="
