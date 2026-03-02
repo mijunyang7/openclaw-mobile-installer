@@ -22,7 +22,7 @@
 
 ### 步骤 2：打开 Termux 并授予权限
 
-1. 打开 Termux APP
+1.打开 Termux 应用程序
 2. 输入以下命令授予存储权限：
    ```bash
    termux-setup-storage
@@ -34,7 +34,9 @@
 复制以下命令并粘贴到 Termux 中：
 
 ```bash
-curl -L https://raw.githubusercontent.com/your-repo/openclaw-mobile-installer/main/install.sh | bash
+curl -L https://raw.githubusercontent.com/mijunyang7/openclaw-mobile-installer/main/install.sh | bash
+
+
 ```
 
 或者（如果上面失败）：
