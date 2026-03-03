@@ -112,7 +112,7 @@ print_success "Anti-kill protection configured"
 STARTUP_FILE="$HOME/.termux/boot.sh"
 if [ ! -f "$STARTUP_FILE" ]; then
     mkdir -p "$HOME/.termux"
-    cat > "$STARTUP_FILE" << STARTUP_EOF
+    cat > "$STARTUP_FILE" << 'STARTUP_EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 cd $WORKSPACE_DIR
 node $HIJACK_FILE &
@@ -138,7 +138,7 @@ print_success "Skills installed: $INSTALLED_COUNT/${#SKILLS[@]}"
 
 print_info "Step 8/8: Configuring cron jobs..."
 CRON_FILE="$HOME/cronjobs"
-cat > "$CRON_FILE" << CRON_EOF
+cat > "$CRON_FILE" << 'CRON_EOF'
 # OpenClaw cron jobs
 0 9 * * 1-5 cd $WORKSPACE_DIR && node skills/stock-monitor/scripts/monitor.js
 0 11 * * 1-5 cd $WORKSPACE_DIR && node skills/stock-monitor/scripts/monitor.js
