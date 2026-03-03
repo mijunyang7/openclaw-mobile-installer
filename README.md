@@ -22,7 +22,7 @@
 
 ### 步骤 2：打开 Termux 并授予权限
 
-1.打开 Termux 应用程序
+1. 打开 Termux APP
 2. 输入以下命令授予存储权限：
    ```bash
    termux-setup-storage
@@ -34,9 +34,7 @@
 复制以下命令并粘贴到 Termux 中：
 
 ```bash
-curl -L https://raw.githubusercontent.com/mijunyang7/openclaw-mobile-installer/refs/heads/main/install.sh
-
-
+curl -L https://raw.githubusercontent.com/mijunyang7/openclaw-mobile-installer/main/install.sh | bash
 ```
 
 或者（如果上面失败）：
@@ -85,7 +83,18 @@ openclaw status
 
 ## 🔍 常见问题
 
-### Q1: 安装过程中断怎么办？
+### Q1: Node.js 版本太低？
+
+**A**: v1.1.1 已修复！脚本会自动安装 Node.js 22+ 到 Ubuntu proot 环境，不受 Termux 自带 Node.js 版本影响。
+
+**OpenClaw 要求**: Node.js 22+
+
+如果遇到版本错误，请重新运行：
+```bash
+bash install.sh
+```
+
+### Q2: 安装过程中断怎么办？
 
 **A**: 重新运行安装脚本即可，脚本会跳过已安装的组件：
 ```bash
